@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -16,7 +17,7 @@ fun LoginScreen(
     onRegisterClick: () -> Unit = {}
 ) {
     var nombre by remember { mutableStateOf("") }
-    var codigo by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -38,18 +39,19 @@ fun LoginScreen(
         )
 
         OutlinedTextField(
-            value = codigo,
-            onValueChange = { if (it.length <= 8) codigo = it },
-            label = { Text("Código (8 dígitos)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            value = password,
+            onValueChange = { if (it.length <= 10) password = it },
+            label = { Text("Contraseña (3 a 10 dígitos)") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp)
         )
 
         Button(
-            onClick = { onLogin(nombre, codigo) },
-            enabled = nombre.isNotBlank() && codigo.length == 8,
+            onClick = { onLogin(nombre, password) },
+            enabled = nombre.isNotBlank() && password.length in 3..10,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Siguiente")

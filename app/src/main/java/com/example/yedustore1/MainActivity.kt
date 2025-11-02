@@ -55,7 +55,7 @@ fun YeduStoreApp() {
         ) { backStackEntry ->
             val nombre = backStackEntry.arguments?.getString("nombre") ?: ""
             val codigo = backStackEntry.arguments?.getString("codigo") ?: ""
-            WelcomeScreen(nombre, codigo) {
+            WelcomeScreen(nombre) {
                 navController.popBackStack("login", inclusive = false)
             }
         }
