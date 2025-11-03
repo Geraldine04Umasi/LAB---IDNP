@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.*
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,16 +149,145 @@ fun HomeScreen(nombre: String) {
 
 @Composable
 fun CategoriesScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            "Categorías de ropa próximamente implementadas 👕👗",
-            textAlign = TextAlign.Center
-        )
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
+
+    val categories = listOf("Mujer", "Hombre", "Niño", "Verano", "Invierno")
+
+    if (selectedCategory == null) {
+        // Pantalla inicial de categorías
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Categorías",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            categories.forEach { category ->
+                Button(
+                    onClick = { selectedCategory = category },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(category)
+                }
+            }
+        }
+    } else {
+        // Mostrar productos de la categoría seleccionada
+        when (selectedCategory) {
+            "Mujer" -> ProductListScreen(
+                title = "Ropa para chicas",
+                products = sampleWomenProducts(),
+                onBack = { selectedCategory = null }
+            )
+
+            else -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "Próximamente implementado en categoría $selectedCategory 🛍️",
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { selectedCategory = null }) {
+                        Text("Volver")
+                    }
+                }
+            }
+        }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductListScreen(title: String, products: List<Product>, onBack: () -> Unit) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text(title) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                }
+            }
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        ) {
+            items(products) { product ->
+                ProductCard(product)
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductCard(product: Product) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                imageVector = Icons.Filled.Checkroom,
+                contentDescription = product.name,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(end = 12.dp)
+            )
+            Column {
+                Text(product.name, style = MaterialTheme.typography.titleMedium)
+                Text(product.description, style = MaterialTheme.typography.bodyMedium)
+                Text("Precio: $${product.price}", color = MaterialTheme.colorScheme.primary)
+                Text("Talla: ${product.size}", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+data class Product(
+    val name: String,
+    val description: String,
+    val price: Double,
+    val size: String
+)
+
+fun sampleWomenProducts(): List<Product> = listOf(
+    Product("Vestido floral", "Vestido de algodón con estampado de flores", 89.99, "M"),
+    Product("Blusa elegante", "Blusa satinada con cuello en V", 59.49, "S"),
+    Product("Falda plisada", "Falda midi plisada color crema", 69.99, "M"),
+    Product("Pantalón palazzo", "Pantalón ancho de lino", 75.50, "L"),
+    Product("Top de encaje", "Top delicado con detalles de encaje", 39.90, "S"),
+    Product("Chaqueta de mezclilla", "Clásica chaqueta azul de jean", 99.00, "M"),
+    Product("Abrigo largo", "Abrigo de lana beige con cinturón", 120.00, "L"),
+    Product("Camisa blanca", "Camisa formal de algodón orgánico", 49.99, "M"),
+    Product("Pantalones cortos", "Shorts de lino beige", 45.00, "S"),
+    Product("Vestido negro", "Vestido corto elegante para noche", 95.99, "M"),
+    Product("Suéter tejido", "Suéter cálido de hilo natural", 70.00, "M"),
+    Product("Blazer clásico", "Blazer estructurado color crema", 110.00, "M"),
+    Product("Falda corta", "Falda denim azul oscuro", 55.00, "S"),
+    Product("Chaleco acolchado", "Chaleco liviano de temporada", 80.00, "M"),
+    Product("Camiseta básica", "Camiseta de algodón ecológico", 35.00, "M"),
+    Product("Pijama suave", "Pijama de algodón orgánico", 60.00, "L"),
+    Product("Pantalón deportivo", "Joggers cómodos de algodón", 50.00, "M"),
+    Product("Cárdigan largo", "Cárdigan beige de punto grueso", 85.00, "M"),
+    Product("Bufanda tejida", "Bufanda artesanal de alpaca", 30.00, "U"),
+    Product("Chaqueta de cuero", "Chaqueta sintética estilo biker", 130.00, "M")
+)
+
 
 @Composable
 fun FavoritesScreen() {
