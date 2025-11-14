@@ -24,54 +24,61 @@ import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WelcomeScreen(nombre: String, onLogout: () -> Unit) {
-    var isDarkTheme by rememberSaveable { mutableStateOf(false) }
+fun WelcomeScreen(
+    nombre: String,
+    onLogout: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
 
-    MyStoreTheme(darkTheme = isDarkTheme) {
-        val navController = rememberNavController()
+    val navController = rememberNavController()
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Yedu Store") },
-                    actions = {
-                        IconButton(onClick = { isDarkTheme = !isDarkTheme }) {
-                            Icon(
-                                imageVector = if (isDarkTheme) Icons.Filled.WbSunny else Icons.Filled.DarkMode,
-                                contentDescription = "Cambiar tema",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { onLogout() }) {
-                            Icon(
-                                imageVector = Icons.Filled.ExitToApp,
-                                contentDescription = "Cerrar sesión",
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Yedu Store") },
+
+                navigationIcon = {
+                    IconButton(onClick = onLogout) {
+                        Icon(
+                            imageVector = Icons.Filled.ExitToApp,
+                            contentDescription = "Cerrar sesión",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
-                )
-            },
-            bottomBar = {
-                BottomNavigationBar(navController)
-            },
-            content = { innerPadding ->
-                NavHost(
-                    navController = navController,
-                    startDestination = "home",
-                    modifier = Modifier.padding(innerPadding)
-                ) {
-                    composable("home") { HomeScreen(nombre) }
-                    composable("categories") { CategoriesScreen() }
-                    composable("favorites") { FavoritesScreen() }
-                    composable("cart") { CartScreen() }
+                },
+
+                actions = {
+                    // 🔥 Botón para abrir la pantalla de ajustes (DataStore)
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = "Configuración",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
+            )
+        },
+
+        bottomBar = {
+            BottomNavigationBar(navController)
+        },
+
+        content = { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = "home",
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable("home") { HomeScreen(nombre) }
+                composable("categories") { CategoriesScreen() }
+                composable("favorites") { FavoritesScreen() }
+                composable("cart") { CartScreen() }
             }
-        )
-    }
+        }
+    )
 }
+
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
