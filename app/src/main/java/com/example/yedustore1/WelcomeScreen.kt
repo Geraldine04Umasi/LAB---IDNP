@@ -19,6 +19,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import com.example.yedustore1.viewmodel.FavoriteViewModel
+import com.example.yedustore1.data.FavoriteProduct
 
 
 
@@ -27,7 +29,8 @@ import androidx.compose.foundation.lazy.items
 fun WelcomeScreen(
     nombre: String,
     onLogout: () -> Unit,
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    favoriteViewModel: FavoriteViewModel
 ) {
 
     val navController = rememberNavController()
@@ -48,7 +51,7 @@ fun WelcomeScreen(
                 },
 
                 actions = {
-                    // 🔥 Botón para abrir la pantalla de ajustes (DataStore)
+                    // Botón para abrir la pantalla de ajustes (DataStore)
                     IconButton(onClick = onOpenSettings) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
@@ -71,8 +74,8 @@ fun WelcomeScreen(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable("home") { HomeScreen(nombre) }
-                composable("categories") { CategoriesScreen() }
-                composable("favorites") { FavoritesScreen() }
+                composable("categories") { CategoriesScreen(favoriteViewModel) }
+                composable("favorites") { FavoritesScreen(favoriteViewModel) }
                 composable("cart") { CartScreen() }
             }
         }
@@ -155,7 +158,7 @@ fun HomeScreen(nombre: String) {
 }
 
 @Composable
-fun CategoriesScreen() {
+fun CategoriesScreen(favoriteViewModel: FavoriteViewModel) {
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
     val categories = listOf("Mujer", "Hombre", "Niño", "Verano", "Invierno")
@@ -191,7 +194,8 @@ fun CategoriesScreen() {
             "Mujer" -> ProductListScreen(
                 title = "Ropa para chicas",
                 products = sampleWomenProducts(),
-                onBack = { selectedCategory = null }
+                onBack = { selectedCategory = null },
+                favoriteViewModel = favoriteViewModel
             )
 
             else -> Box(
@@ -214,7 +218,12 @@ fun CategoriesScreen() {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductListScreen(title: String, products: List<Product>, onBack: () -> Unit) {
+fun ProductListScreen(
+    title: String,
+    products: List<Product>,
+    onBack: () -> Unit,
+    favoriteViewModel: FavoriteViewModel
+) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text(title) },
@@ -231,14 +240,14 @@ fun ProductListScreen(title: String, products: List<Product>, onBack: () -> Unit
                 .padding(8.dp)
         ) {
             items(products) { product ->
-                ProductCard(product)
+                ProductCard(product, favoriteViewModel)
             }
         }
     }
 }
 
 @Composable
-fun ProductCard(product: Product) {
+fun ProductCard(product: Product, favoriteViewModel: FavoriteViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,15 +264,30 @@ fun ProductCard(product: Product) {
                     .size(48.dp)
                     .padding(end = 12.dp)
             )
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, style = MaterialTheme.typography.titleMedium)
                 Text(product.description, style = MaterialTheme.typography.bodyMedium)
                 Text("Precio: $${product.price}", color = MaterialTheme.colorScheme.primary)
                 Text("Talla: ${product.size}", style = MaterialTheme.typography.bodySmall)
             }
+
+            IconButton(
+                onClick = {
+                    favoriteViewModel.addFavorite(
+                        FavoriteProduct(
+                            name = product.name,
+                            price = product.price,
+                            size = product.size
+                        )
+                    )
+                }
+            ) {
+                Icon(Icons.Filled.Favorite, contentDescription = "Agregar a favoritos")
+            }
         }
     }
 }
+
 
 data class Product(
     val name: String,
@@ -297,15 +321,47 @@ fun sampleWomenProducts(): List<Product> = listOf(
 
 
 @Composable
-fun FavoritesScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            "Tus prendas favoritas aparecerán aquí",
-            textAlign = TextAlign.Center
-        )
+fun FavoritesScreen(favoriteViewModel: FavoriteViewModel) {
+
+    val favorites by favoriteViewModel.favorites.collectAsState(initial = emptyList())
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+
+        Text("Mis Favoritos", style = MaterialTheme.typography.headlineMedium)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (favorites.isEmpty()) {
+            Text("No hay productos favoritos aún.")
+        } else {
+            LazyColumn {
+                items(favorites) { item ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Row(modifier = Modifier.padding(16.dp)) {
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.name)
+                                Text("Precio: $${item.price}")
+                                Text("Talla: ${item.size}")
+                            }
+
+                            IconButton(onClick = {
+                                favoriteViewModel.removeFavorite(item)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = "Eliminar"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

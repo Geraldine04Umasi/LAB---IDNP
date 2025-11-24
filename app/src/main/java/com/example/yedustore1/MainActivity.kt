@@ -13,13 +13,36 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import androidx.activity.viewModels
+import androidx.room.Room
+import com.example.yedustore1.data.AppDatabase
+import com.example.yedustore1.data.FavoritesRepository
+import com.example.yedustore1.viewmodel.FavoriteViewModel
+import com.example.yedustore1.viewmodel.FavoriteViewModelFactory
+
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var themeDataStore: ThemeDataStore
+    private lateinit var db: AppDatabase
+    private lateinit var favoritesRepository: FavoritesRepository
+    private val favoriteViewModel: FavoriteViewModel by viewModels {
+        FavoriteViewModelFactory(favoritesRepository)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Crea la BD Room
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "yedustore_db"
+        ).build()
+
+        // Crea el repositorio
+        favoritesRepository = FavoritesRepository(db.favoriteDao())
 
         themeDataStore = ThemeDataStore(this)
 
@@ -35,7 +58,8 @@ class MainActivity : ComponentActivity() {
                         lifecycleScope.launch {
                             themeDataStore.saveThemePreference(newTheme)
                         }
-                    }
+                    },
+                    favoriteViewModel = favoriteViewModel
                 )
             }
         }
@@ -45,7 +69,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun YeduStoreApp(
     isDarkTheme: Boolean,
-    onThemeToggle: (Boolean) -> Unit
+    onThemeToggle: (Boolean) -> Unit,
+    favoriteViewModel: FavoriteViewModel
 ) {
     val navController = rememberNavController()
 
@@ -69,7 +94,7 @@ fun YeduStoreApp(
             )
         }
 
-        // 🔥 Nueva ruta SETTINGS
+        // Nueva ruta SETTINGS
         composable("settings") {
             SettingsScreen(
                 isDarkTheme = isDarkTheme,
@@ -89,7 +114,8 @@ fun YeduStoreApp(
             WelcomeScreen(
                 nombre = nombre,
                 onLogout = { navController.popBackStack("login", false) },
-                onOpenSettings = { navController.navigate("settings") }
+                onOpenSettings = { navController.navigate("settings") },
+                favoriteViewModel = favoriteViewModel
             )
         }
     }
