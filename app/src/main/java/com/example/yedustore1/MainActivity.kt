@@ -19,6 +19,9 @@ import com.example.yedustore1.data.AppDatabase
 import com.example.yedustore1.data.FavoritesRepository
 import com.example.yedustore1.viewmodel.FavoriteViewModel
 import com.example.yedustore1.viewmodel.FavoriteViewModelFactory
+import com.example.yedustore1.ui.theme.MyStoreTheme
+import com.example.yedustore1.ui.screens.welcome.WelcomeScreen
+
 
 
 class MainActivity : ComponentActivity() {
